@@ -1,23 +1,34 @@
-// import 'package:flutter/material.dart';
+import 'package:attendlyproject_app/constant/app_color.dart';
+import 'package:attendlyproject_app/pages/dashboard/widget/header.dart';
+import 'package:attendlyproject_app/pages/dashboard/widget/total_attendance';
+import 'package:attendlyproject_app/pages/dashboard/widget/working_time.dart';
+import 'package:flutter/material.dart';
 
-// class Dashboardpage extends StatefulWidget {
-//   const Dashboardpage({super.key});
+class DashboardPage extends StatefulWidget {
+  const DashboardPage({super.key});
 
-//   @override
-//   State<Dashboardpage> createState() => _DashboardpageState();
-// }
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
 
-// class _DashboardpageState extends State<Dashboardpage> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//     AppBar(
-//       AppBarz
-//       title: const Text('Dashboard Page'),
-//     ),
-//     body: const Center(
-//       child: Text('Welcome to the Dashboard!'),
-//     ),
-//     );
-//   }
-// }
+class _DashboardPageState extends State<DashboardPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColor.bg,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            children: const [
+              HeaderWidget(),
+              WorkingTimeWidget(),
+              TotalAttendanceWidget(),
+              // WorkingHoursWidget(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
