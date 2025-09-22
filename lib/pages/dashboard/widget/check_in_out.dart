@@ -21,10 +21,10 @@ class CheckInOutContainer extends StatefulWidget {
   });
 
   @override
-  State<CheckInOutContainer> createState() => _CheckInOutContainerState();
+  State<CheckInOutContainer> createState() => CheckInOutContainerState();
 }
 
-class _CheckInOutContainerState extends State<CheckInOutContainer> {
+class CheckInOutContainerState extends State<CheckInOutContainer> {
   late String address;
   late String date;
   late String checkInTime;
@@ -53,23 +53,10 @@ class _CheckInOutContainerState extends State<CheckInOutContainer> {
     _fetchToday();
   }
 
-  /// PUBLIC: Dipanggil PARENT setelah check-in / check-out sukses.
-  /// Contoh penggunaan di parent:
-  ///   final key = GlobalKey<_CheckInOutContainerState>();
-  ///   CheckInOutContainer(key: key, ...);
-  ///   // setelah sukses check-in / check-out:
-  ///   key.currentState?.reload();
   Future<void> reload() async {
     await _fetchToday();
   }
 
-  /// COMMAND: Ambil absen HARI INI
-  /// 1) Ambil token dari storage
-  /// 2) Panggil AttendanceApiService.today(token)
-  /// 3) Isi state:
-  ///    - Tanggal format EN: EEEE, d MMM yyyy
-  ///    - Jam: "-" jika kosong
-  ///    - Alamat: prioritaskan check_in_address, fallback ke check_out_address
   Future<void> _fetchToday() async {
     if (!mounted) return;
 
@@ -90,10 +77,7 @@ class _CheckInOutContainerState extends State<CheckInOutContainer> {
         final DateTime d = today.attendanceDate;
 
         setState(() {
-          // FORMAT TANGGAL ENGLISH
           date = DateFormat('EEEE, d MMM yyyy', 'en_US').format(d);
-
-          // WAKTU AMAN "-": SEBELUM CHECK-IN/CHECK-OUT
           checkInTime = (today.checkInTime.trim().isEmpty)
               ? '-'
               : today.checkInTime;
@@ -101,7 +85,6 @@ class _CheckInOutContainerState extends State<CheckInOutContainer> {
           final String? co = today.checkOutTime?.toString().trim();
           checkOutTime = (co == null || co.isEmpty) ? '-' : co;
 
-          // ALAMAT AKURAT DARI API (CHECK-IN DULU, Fallback CHECK-OUT)
           address = today.checkInAddress.isNotEmpty
               ? today.checkInAddress
               : (today.checkOutAddress?.toString().isNotEmpty == true
@@ -134,79 +117,95 @@ class _CheckInOutContainerState extends State<CheckInOutContainer> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
-        // GRADIENT PINK
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFF88CB), Color(0xFFFF6FBA)],
+        color: AppColor.pinkMid,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColor.textDark.withOpacity(0.10),
+          width: 1,
         ),
-        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColor.pinkMid.withOpacity(0.25),
+            color: AppColor.pinkMid.withOpacity(0.4), // shadow pink
             blurRadius: 16,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // BARIS ALAMAT + INDIKATOR LOADING KECIL (TANPA TOMBOL REFRESH)
+          // === Baris Alamat ===
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.location_on_rounded, color: Colors.white),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.25),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.location_on_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   address,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
-                    height: 1.25,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    height: 1.3,
                   ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
-              if (_loading)
+              if (_loading) ...[
+                const SizedBox(width: 8),
                 const SizedBox(
-                  width: 18,
-                  height: 18,
+                  width: 20,
+                  height: 20,
                   child: CircularProgressIndicator(
                     color: Colors.white,
                     strokeWidth: 2,
                   ),
                 ),
+              ],
             ],
-          ),
-
-          const SizedBox(height: 10),
-
-          // CHIP TANGGAL
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.25),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              date,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ),
 
           const SizedBox(height: 14),
 
-          // DUA "PILL" UNTUK CHECK IN / CHECK OUT
+          // === Tanggal ===
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Text(
+                date,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 15,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // === Dua pill check in/out ===
           Row(
             children: [
               Expanded(
@@ -214,25 +213,21 @@ class _CheckInOutContainerState extends State<CheckInOutContainer> {
                   label: 'Check In',
                   time: checkInTime,
                   icon: Icons.login_rounded,
-                  bg: Colors.white,
-                  fg: AppColor.textDark,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: _pillTime(
                   label: 'Check Out',
                   time: checkOutTime,
                   icon: Icons.logout_rounded,
-                  bg: Colors.white.withOpacity(0.85),
-                  fg: AppColor.textDark,
                 ),
               ),
             ],
           ),
 
           if (_error != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Text(
               _error!,
               style: const TextStyle(color: Colors.white, fontSize: 12),
@@ -243,32 +238,40 @@ class _CheckInOutContainerState extends State<CheckInOutContainer> {
     );
   }
 
-  // KOMPONEN KECIL UNTUK "PILL" WAKTU
   Widget _pillTime({
     required String label,
     required String time,
     required IconData icon,
-    required Color bg,
-    required Color fg,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(14),
+        color: AppColor.form,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.pinkMid.withOpacity(0.4), // shadow pink
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 38,
+            height: 38,
             decoration: BoxDecoration(
-              color: AppColor.pinkExtraLight,
+              gradient: LinearGradient(
+                colors: [AppColor.pinkMid, AppColor.pinkLight],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: AppColor.pinkMid, size: 20),
+            child: Icon(icon, color: Colors.white, size: 20),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,19 +279,18 @@ class _CheckInOutContainerState extends State<CheckInOutContainer> {
                 Text(
                   label,
                   style: TextStyle(
-                    color: fg.withOpacity(0.7),
+                    color: AppColor.textDark.withOpacity(0.6),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  // SEBELUM CHECK-IN/CHECK-OUT → TAMPILKAN "-"
-                  (time.isEmpty ? '-' : time),
-                  style: TextStyle(
-                    color: fg,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                  time.isEmpty ? '-' : time,
+                  style: const TextStyle(
+                    color: AppColor.textDark,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],

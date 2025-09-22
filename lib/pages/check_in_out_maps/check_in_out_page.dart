@@ -1,6 +1,7 @@
 import 'package:attendlyproject_app/copyright/copy_right.dart';
-// === API TOKENS & SERVICE ===
+import 'package:attendlyproject_app/model/today_absen_model.dart';
 import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
+import 'package:attendlyproject_app/services/all_condition_absen_Service.dart';
 import 'package:attendlyproject_app/services/check_in_out_service.dart';
 import 'package:attendlyproject_app/utils/app_color.dart';
 import 'package:flutter/material.dart';
@@ -9,9 +10,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 
+// === Tambah Import untuk API Today Absen ===
+
 class CheckInOutPage extends StatefulWidget {
   const CheckInOutPage({super.key});
   static const id = "/gmapspage";
+
   @override
   State<CheckInOutPage> createState() => _CheckInOutPageState();
 }
@@ -22,20 +26,43 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
   double _currentZoom = 16;
   Marker? _marker;
 
-  String _address = 'Retrieving Adsress...';
-  String? _checkInTime;
-  String? _checkOutTime;
+  String _address = 'Retrieving Address...';
 
   bool _isSubmitting = false;
+  bool _isLoadingToday = true;
+  String? _errorToday;
+
+  TodayAbsenModel? absenToday;
 
   @override
   void initState() {
     super.initState();
-    _loadLocalAttendance(); // ← muat jam lokal dulu
-    _initLocation(); // ← tetap ambil lokasi
+    _initLocation();
+    _loadAbsenToday();
   }
 
-  // Ambil lokasi user + reverse geocoding alamat, lalu set marker & kamera
+  // === Ambil absen hari ini dari API ===
+  Future<void> _loadAbsenToday() async {
+    setState(() {
+      _isLoadingToday = true;
+      _errorToday = null;
+    });
+    try {
+      final data = await AttendanceApiService.getAbsenToday();
+      if (!mounted) return;
+      setState(() {
+        absenToday = data;
+        _isLoadingToday = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorToday = e.toString();
+        _isLoadingToday = false;
+      });
+    }
+  }
+
   Future<void> _initLocation() async {
     final pos = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
@@ -48,7 +75,6 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
     String addr = 'Address not found';
     if (placemarks.isNotEmpty) {
       final p = placemarks.first;
-      // lebih detail + fallback kalau null
       addr = [
         if ((p.street ?? '').isNotEmpty) p.street,
         if ((p.subLocality ?? '').isNotEmpty) p.subLocality,
@@ -80,55 +106,23 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
     setState(() => _currentZoom = newZoom);
   }
 
-  // ====== LOCAL ATTENDANCE HELPERS (DALAM STATE) ======
-
-  // Kunci unik per-hari
-  String get _todayKey => DateFormat('yyyy-MM-dd').format(DateTime.now());
-
-  // Muat jam checkin/checkout dari storage agar tombol & label langsung sesuai
-  Future<void> _loadLocalAttendance() async {
-    final inTime = await PreferenceHandler.getString('checkin_$_todayKey');
-    final outTime = await PreferenceHandler.getString('checkout_$_todayKey');
-    if (!mounted) return;
-    setState(() {
-      _checkInTime = inTime; // bisa null kalau belum ada
-      _checkOutTime = outTime; // bisa null kalau belum ada
-    });
-  }
-
-  // Simpan jam checkin/checkout ke storage setelah sukses API
-  Future<void> _saveLocalAttendance() async {
-    if (_checkInTime != null) {
-      await PreferenceHandler.setString('checkin_$_todayKey', _checkInTime!);
-    }
-    if (_checkOutTime != null) {
-      await PreferenceHandler.setString('checkout_$_todayKey', _checkOutTime!);
-    }
-  }
-
-  // Tombol utama
-  // - Jika belum check-in → panggil API checkIn()
-  // - Jika sudah check-in & belum check-out → panggil API checkOut()
-  // - Token WAJIB ada; kalau null/empty → tampilkan error
+  // === Tombol utama untuk checkin/checkout ===
   Future<void> _onPressMainButton() async {
-    if (_isSubmitting) return; // cegah double tap
+    if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
 
     try {
-      // 1) Ambil token dari storage
       final token = await PreferenceHandler.getToken();
       if (token == null || token.isEmpty) {
         throw Exception('Token not found / Expired');
       }
 
-      // 2) Siapkan payload lokasi untuk API
       final lat = _currentPosition.latitude;
       final lng = _currentPosition.longitude;
       final locationString = '$lat,$lng';
       final address = _address;
 
-      // 3) Call API sesuai state
-      if (_checkInTime == null) {
+      if ((absenToday?.data.checkInTime ?? "").isEmpty) {
         // === CHECK IN ===
         final res = await CheckInOutService.checkIn(
           token: token,
@@ -138,24 +132,12 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
           address: address,
         );
 
-        setState(() {
-          _checkInTime = (res.data.checkInTime.isNotEmpty)
-              ? res.data.checkInTime
-              : TimeOfDay.now().format(context);
-        });
-
-        // ⬇️ SIMPAN jam check-in ke storage (biar persist)
-        await _saveLocalAttendance();
-
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(res.message ?? 'Check-in successful'),
-              backgroundColor: Colors.green,
-            ),
+            SnackBar(content: Text(res.message ?? 'Check-in successful')),
           );
         }
-      } else if (_checkOutTime == null) {
+      } else if ((absenToday?.data.checkOutTime ?? "").isEmpty) {
         // === CHECK OUT ===
         final res = await CheckInOutService.checkOut(
           token: token,
@@ -165,24 +147,15 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
           address: address,
         );
 
-        setState(() {
-          _checkOutTime = (res.data.checkOutTime.isNotEmpty)
-              ? res.data.checkOutTime
-              : TimeOfDay.now().format(context);
-        });
-
-        // ⬇️ SIMPAN jam check-out ke storage (biar persist)
-        await _saveLocalAttendance();
-
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(res.message ?? 'Check-out successful'),
-              backgroundColor: Colors.green,
-            ),
+            SnackBar(content: Text(res.message ?? 'Check-out successful')),
           );
         }
       }
+
+      // ⬇️ setelah sukses, reload API biar update
+      await _loadAbsenToday();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -200,13 +173,13 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-
-    final weekday = _weekdayLabel(now.weekday);
     final dateLabel = DateFormat('EEEE, d MMM yyyy', 'en_US').format(now);
 
-    final mapHeight =
-        MediaQuery.of(context).size.height * 0.38; // ➜ lebih pendek
-    final completed = _checkInTime != null && _checkOutTime != null;
+    final mapHeight = MediaQuery.of(context).size.height * 0.38;
+
+    final checkInTime = absenToday?.data.checkInTime ?? "--:--";
+    final checkOutTime = absenToday?.data.checkOutTime ?? "--:--";
+    final completed = checkInTime != "--:--" && checkOutTime != "--:--";
 
     return Scaffold(
       backgroundColor: AppColor.bg,
@@ -254,7 +227,6 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
                     onMapCreated: (c) => _mapController = c,
                   ),
 
-                  // Zoom in/out
                   Positioned(
                     right: 10,
                     bottom: 10,
@@ -277,7 +249,7 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
             ),
           ),
 
-          // ===== CONTENT CARD + COPYRIGHT =====
+          // ===== CONTENT CARD =====
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -289,66 +261,76 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    _address,
-                    maxLines: 3, // 3 baris
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(_address, maxLines: 3, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 16),
 
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColor.pinkExtraLight,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColor.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          dateLabel,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: AppColor.textDark,
+                  // Card absensi
+                  if (_isLoadingToday)
+                    const Center(child: CircularProgressIndicator())
+                  else if (_errorToday != null)
+                    Text(
+                      "Error: $_errorToday",
+                      style: const TextStyle(color: Colors.red),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColor.form, // warna form sesuai request
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColor.border),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColor.pinkMid.withOpacity(
+                              0.2,
+                            ), // shadow pink halus
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _timeTile(
-                                icon: Icons.login,
-                                label: "Check In",
-                                time: _checkInTime,
-                                accent: Colors.green,
-                              ),
+                        ],
+                      ),
+
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            dateLabel,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppColor.textDark,
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _timeTile(
-                                icon: Icons.logout,
-                                label: "Check Out",
-                                time: _checkOutTime,
-                                accent: Colors.redAccent,
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _timeTile(
+                                  icon: Icons.login,
+                                  label: "Check In",
+                                  time: checkInTime,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _timeTile(
+                                  icon: Icons.logout,
+                                  label: "Check Out",
+                                  time: checkOutTime,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
 
                   const SizedBox(height: 20),
 
-                  // COMMAND: tekan → _onPressMainButton()
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: completed
-                          ? null
-                          : _onPressMainButton, // disable kalau complete
+                      onPressed: completed ? null : _onPressMainButton,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: completed
                             ? AppColor.grey
@@ -369,7 +351,7 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
                           : Text(
                               completed
                                   ? "Attendance Complete"
-                                  : (_checkInTime == null
+                                  : (checkInTime == "--:--"
                                         ? "Check In"
                                         : "Check Out"),
                               style: const TextStyle(
@@ -415,25 +397,36 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
     required IconData icon,
     required String label,
     required String? time,
-    required Color accent,
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.bg, // warna form
         border: Border.all(color: AppColor.border),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.pinkMid.withOpacity(0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         children: [
+          // Gradient Circle Icon
           Container(
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: accent.withOpacity(0.12),
               shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [AppColor.pinkMid, Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
-            child: Icon(icon, color: accent),
+            child: Icon(icon, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
           Flexible(
@@ -452,7 +445,9 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
                   time ?? "-",
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: time == null ? AppColor.grey : AppColor.textDark,
+                    color: (time == null || time == "--:--")
+                        ? AppColor.grey
+                        : AppColor.textDark,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -462,28 +457,5 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
         ],
       ),
     );
-  }
-
-  String _weekdayLabel(int w) {
-    const arr = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    return arr[w - 1];
-  }
-
-  String _monthLabel(int m) {
-    const arr = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return arr[m - 1];
   }
 }

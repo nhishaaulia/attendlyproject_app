@@ -5,6 +5,7 @@ import 'package:attendlyproject_app/pages/auth/login_page.dart';
 import 'package:attendlyproject_app/pages/auth/register_page.dart';
 import 'package:attendlyproject_app/pages/check_in_out_maps/check_in_out_page.dart';
 import 'package:attendlyproject_app/pages/dashboard/dashboardpage.dart';
+import 'package:attendlyproject_app/pages/izin%20page/izin_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -36,9 +37,11 @@ class MyApp extends StatelessWidget {
         RegisterPage.id: (context) => const RegisterPage(),
         OverviewPage.id: (context) => const OverviewPage(),
         DashboardPage.id: (context) => const DashboardPage(),
-        ForgotPasswordPage.id: (context) => const ForgotPasswordPage(),
+        ForgotResetPasswordPage.id: (context) =>
+            const ForgotResetPasswordPage(),
         CheckInOutPage.id: (context) => const CheckInOutPage(),
         DetailAttendancePage.id: (context) => const DetailAttendancePage(),
+        IzinPage.id: (context) => const IzinPage(),
       },
     );
     // home: const OverviewPage(),

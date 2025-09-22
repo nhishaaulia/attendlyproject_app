@@ -9,8 +9,7 @@ class AppColor {
     198,
     227,
   ); // tombol utama
-  static const Color pinkMid = Color(0xFFFF6FBA);
-
+  static const Color pinkMid = Color(0xFFE64C8C);
   // opsional gradient
   static const Color pinkLight = Color(0xFFFFE6EE); // background sekunder
   static const Color pinkExtraLight = Color(0xFFFFF1F6);

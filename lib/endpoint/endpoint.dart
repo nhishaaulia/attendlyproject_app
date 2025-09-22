@@ -10,10 +10,11 @@ class Endpoint {
   static final String profilePhoto = '$baseUrl/profile/photo';
   static final String checkIn = '$baseUrl/absen/check-in';
   static final String checkOut = '$baseUrl/absen/check-out';
-  static final String permission = '$baseUrl/izin';
-  static final String resetPassword = '$baseUrl/reset-password';
-  static final String forgotPassword = '$baseUrl/forgot-password';
+  static final String izin = '$baseUrl/izin';
+  static final String resetPassword = "$baseUrl/reset-password";
+  static final String requestOtp = "$baseUrl/forgot-password";
   static String deleteAbsen(int id) => '$baseUrl/absen/$id';
   static String todayAbsen(String attendanceDate) =>
       '$baseUrl/absen/today?attendance_date=$attendanceDate';
+  static final String absenToday = '$baseUrl/absen/today';
 }

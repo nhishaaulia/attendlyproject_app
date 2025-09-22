@@ -13,6 +13,10 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardpageState extends State<DashboardPage> {
+  // GlobalKey untuk akses state CheckInOutContainer
+  final GlobalKey<CheckInOutContainerState> checkKey =
+      GlobalKey<CheckInOutContainerState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,23 +29,35 @@ class _DashboardpageState extends State<DashboardPage> {
             // Profile Header
             HeaderDashboard(),
 
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             // Check-in/Check-out
             CheckInOutContainer(
+              key: checkKey,
               initialAddress: '',
               initialDate: '',
               initialCheckInTime: '',
               initialCheckOutTime: '',
             ),
 
-            const SizedBox(height: 20),
+            // const SizedBox(height: 12),
 
+            // const DigitalClockCountdown(),
+            const SizedBox(height: 20),
+            // Tombol submit absen → buka halaman map
             SubmitAbsenWidget(
-              onMapTap: () => Navigator.pushNamed(context, '/gmapspage'),
+              onMapTap: () async {
+                // buka halaman map
+                await Navigator.pushNamed(context, '/gmapspage');
+
+                // setelah balik dari map, reload data checkin/checkout
+                checkKey.currentState?.reload();
+              },
             ),
 
-            // SECTION sejarah 7 hari (langsung fetch API)
+            // const SizedBox(height: 20),
+            const SizedBox(height: 20),
+            // Riwayat 7 hari
             AttendanceHistory7Days(
               onDetailsTap: () =>
                   Navigator.pushNamed(context, '/history'), // optional

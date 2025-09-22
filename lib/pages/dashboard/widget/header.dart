@@ -127,10 +127,10 @@ class _HeaderDashboardState extends State<HeaderDashboard> {
           // Foto profil
           CircleAvatar(
             radius: 30,
-            backgroundColor: AppColor.border,
+            backgroundColor: AppColor.pinkMid.withOpacity(.3),
             backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
             child: photoUrl == null
-                ? const Icon(Icons.person, color: AppColor.textDark, size: 30)
+                ? const Icon(Icons.person, color: AppColor.bg, size: 30)
                 : null,
           ),
           const SizedBox(width: 16),

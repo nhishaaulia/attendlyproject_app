@@ -40,9 +40,9 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.white,
       body: Center(
         child: Image.asset(
-          'assets/logo/attendify_black.png',
-          width: 180,
-          height: 180,
+          'assets/images/attendly_logo.png',
+          width: 200,
+          height: 200,
         ),
       ),
     );

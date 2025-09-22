@@ -135,4 +135,27 @@ class AuthService {
       throw Exception('No internet connection');
     }
   }
+
+  static Future<LoginUserModel> loginUser({
+    required String email,
+    required String password,
+  }) async {
+    final url = Uri.parse(Endpoint.login);
+    final response = await http.post(
+      url,
+      body: {"email": email, "password": password},
+      headers: {"Accept": "application/json"},
+    );
+    if (response.statusCode == 200) {
+      final data = LoginUserModel.fromJson(json.decode(response.body));
+      await PreferenceHandler.saveToken(data.data.token);
+      await PreferenceHandler.saveLogin();
+      // await PreferenceHandler.saveUserId(data.data.user.id);
+      print("UserId saved: ${data.data.user.id}");
+      return data;
+    } else {
+      final error = json.decode(response.body);
+      throw Exception(error["message"] ?? "Register gagal");
+    }
+  }
 }

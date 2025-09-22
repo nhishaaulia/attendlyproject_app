@@ -10,6 +10,7 @@ import 'package:attendlyproject_app/model/history_absen_model.dart';
 
 import 'package:attendlyproject_app/model/statistik_absen_model.dart';
 import 'package:attendlyproject_app/model/today_absen_model.dart';
+import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
 import 'package:http/http.dart' as http;
 
 /// Service
@@ -224,5 +225,32 @@ class AttendanceApiService {
       body: body,
     );
     return CheckOutModel.fromJson(jsonMap);
+  }
+
+  static Future<TodayAbsenModel?> getAbsenToday() async {
+    try {
+      final token = await PreferenceHandler.getToken();
+      final now = DateTime.now();
+      final attendanceDate =
+          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
+      final response = await http.get(
+        Uri.parse("${Endpoint.absenToday}?attendance_date=$attendanceDate"),
+        headers: {
+          "Accept": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return TodayAbsenModel.fromJson(jsonDecode(response.body));
+      } else {
+        print("Get Absen Today Failed: ${response.body}");
+        return null;
+      }
+    } catch (e) {
+      print("Error Get Absen Today: $e");
+      return null;
+    }
   }
 }

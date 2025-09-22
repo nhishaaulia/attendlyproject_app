@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:attendlyproject_app/model/history_absen_model.dart';
 import 'package:attendlyproject_app/model/statistik_absen_model.dart';
 import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
@@ -15,24 +16,18 @@ class DetailAttendancePage extends StatefulWidget {
 }
 
 class _DetailAttendancePageState extends State<DetailAttendancePage> {
-  // ===== STATE =====
   bool _loading = false;
   String? _error;
 
-  DataStatistik? _stat; // Statistik ringkas
-  List<DataHistory> _history = []; // Riwayat lengkap
+  DataStatistik? _stat;
+  List<DataHistory> _history = [];
 
   @override
   void initState() {
     super.initState();
-    _loadAll(); // COMMAND: saat halaman dibuka → ambil statistik + history
+    _loadAll();
   }
 
-  /// COMMAND: Ambil statistik + history attendance dari API
-  /// 1) Ambil token dari storage
-  /// 2) Panggil AttendanceApiService.summary(token)
-  /// 3) Panggil AttendanceApiService.historyList(token)
-  /// 4) Simpan ke state untuk dirender di UI
   Future<void> _loadAll() async {
     setState(() {
       _loading = true;
@@ -47,8 +42,6 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
 
       final stat = await AttendanceApiService.summary(token);
       final items = await AttendanceApiService.historyList(token);
-
-      // Urutkan terbaru dulu
       items.sort((a, b) => b.attendanceDate.compareTo(a.attendanceDate));
 
       if (!mounted) return;
@@ -85,7 +78,8 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
         foregroundColor: AppColor.textDark,
       ),
       body: RefreshIndicator(
-        onRefresh: _loadAll, // COMMAND: tarik ke bawah untuk refresh API
+        color: AppColor.pinkMid,
+        onRefresh: _loadAll,
         child: _buildBody(),
       ),
     );
@@ -108,27 +102,17 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // ===== STATISTIK SUMMARY =====
         _statsSection(),
-
-        const SizedBox(height: 18),
-
-        // ===== TITLE RIWAYAT =====
-        Row(
-          children: const [
-            Text(
-              'All Attendance',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColor.textDark,
-              ),
-            ),
-          ],
+        const SizedBox(height: 20),
+        const Text(
+          'All Attendance',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColor.textDark,
+          ),
         ),
         const SizedBox(height: 12),
-
-        // ===== LIST HISTORY =====
         if (_history.isEmpty)
           _emptyCard('Belum ada riwayat absensi.')
         else
@@ -137,28 +121,31 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
     );
   }
 
-  // =========================
-  // ========== UI ===========
-  // =========================
-
+  // ===== Statistik Ringkas =====
   Widget _statsSection() {
     final doneToday = _stat?.sudahAbsenHariIni == true;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: _box(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Statistics',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColor.textDark,
-              fontWeight: FontWeight.w700,
-            ),
+          Row(
+            children: const [
+              Icon(Icons.insert_chart, color: AppColor.pinkMid, size: 20),
+              SizedBox(width: 8),
+              Text(
+                'Statistics',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: AppColor.textDark,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(
@@ -172,39 +159,39 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
                 child: _statTile(
                   title: 'Present',
                   value: (_stat?.totalMasuk ?? 0).toString(),
-                  color: const Color(0xFF24A148),
-                  bg: const Color(0xFFE7F8EC),
+                  color: Colors.white,
+                  bg: AppColor.pinkMid.withOpacity(0.85),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _statTile(
-                  title: 'Permission',
+                  title: 'Leave',
                   value: (_stat?.totalIzin ?? 0).toString(),
-                  color: const Color(0xFFB56200),
-                  bg: const Color(0xFFFFF3E6),
+                  color: Colors.white,
+                  bg: const Color(0xFFFCCFCF), // soft pink
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Row(
             children: [
               Icon(
                 doneToday ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: doneToday ? const Color(0xFF24A148) : AppColor.grey,
-                size: 18,
+                color: doneToday ? AppColor.pinkMid : AppColor.grey,
+                size: 20,
               ),
-              const SizedBox(width: 6),
-              Text(
-                doneToday
-                    ? 'You have taken attendance today'
-                    : 'You have not taken attendance today',
-                style: TextStyle(
-                  color: doneToday
-                      ? const Color(0xFF24A148)
-                      : AppColor.textDark,
-                  fontWeight: FontWeight.w600,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  doneToday
+                      ? 'You have taken attendance today'
+                      : 'You have not taken attendance today',
+                  style: TextStyle(
+                    color: doneToday ? AppColor.pinkMid : AppColor.textDark,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -224,8 +211,15 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       decoration: BoxDecoration(
         color: bg,
-        border: Border.all(color: const Color(0xFFE9EDF2)),
-        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColor.pinkMid.withOpacity(0.15)),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.pinkMid.withOpacity(0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,7 +227,7 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: 13,
               color: Color(0xFF6B7280),
               fontWeight: FontWeight.w600,
             ),
@@ -242,7 +236,7 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
           Text(
             value,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 22,
               color: color,
               fontWeight: FontWeight.w800,
             ),
@@ -252,22 +246,25 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
     );
   }
 
+  // ===== Card History (tambah Reason di sini) =====
   Widget _historyCard(DataHistory item) {
     final dayName = DateFormat('EEEE', 'en_US').format(item.attendanceDate);
     final dateText =
         '${item.attendanceDate.day}/${item.attendanceDate.month}/${item.attendanceDate.year}';
-
     final inTime = _fmtTime(item.checkInTime);
     final outTime = _fmtTime(item.checkOutTime);
 
+    final showReason =
+        item.status.toLowerCase() == 'izin' &&
+        (item.alasanIzin?.isNotEmpty ?? false);
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: _box(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Judul Hari
           Text(
             dayName,
             style: const TextStyle(
@@ -277,8 +274,6 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
             ),
           ),
           const SizedBox(height: 6),
-
-          // Tanggal + Chip Status
           Row(
             children: [
               Text(
@@ -293,23 +288,26 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
               _statusChip(item.status),
             ],
           ),
-
           const SizedBox(height: 12),
-
-          // Check In / Check Out Blocks
           Row(
             children: [
               Expanded(
-                child: _timeBlock(title: 'Check in', time: inTime),
+                child: _timeBlock(
+                  title: 'Check In',
+                  time: inTime,
+                  accent: AppColor.pinkMid,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _timeBlock(title: 'Check out', time: outTime),
+                child: _timeBlock(
+                  title: 'Check Out',
+                  time: outTime,
+                  accent: Colors.redAccent,
+                ),
               ),
             ],
           ),
-
-          // Optional: alamat
           if ((item.checkInAddress ?? '').isNotEmpty ||
               (item.checkOutAddress ?? '').isNotEmpty) ...[
             const SizedBox(height: 10),
@@ -338,6 +336,23 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
               ],
             ),
           ],
+          // ======== Reason ========
+          if (showReason) ...[
+            const SizedBox(height: 12),
+            const Text(
+              'Reason',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColor.textDark,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              item.alasanIzin ?? '',
+              style: const TextStyle(fontSize: 13, color: AppColor.textDark),
+            ),
+          ],
         ],
       ),
     );
@@ -351,14 +366,14 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
     switch (status.toLowerCase()) {
       case 'masuk':
       case 'present':
-        bg = const Color(0xFFE7F8EC);
-        fg = const Color(0xFF24A148);
+        bg = AppColor.pinkMid.withOpacity(0.15);
+        fg = AppColor.pinkMid;
         label = 'PRESENT';
         break;
       case 'izin':
-        bg = const Color(0xFFFFF3E6);
-        fg = const Color(0xFFB56200);
-        label = 'IZIN';
+        bg = const Color(0xFFFCCFCF);
+        fg = const Color(0xFFB94B4B);
+        label = 'LEAVE';
         break;
       default:
         bg = const Color(0xFFF1F2F6);
@@ -384,13 +399,24 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
     );
   }
 
-  Widget _timeBlock({required String title, required String time}) {
+  Widget _timeBlock({
+    required String title,
+    required String time,
+    required Color accent,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFD),
-        border: Border.all(color: const Color(0xFFE9EDF2)),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: accent.withOpacity(0.25), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,9 +432,9 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
           const SizedBox(height: 6),
           Text(
             time,
-            style: const TextStyle(
-              fontSize: 16,
-              color: AppColor.textDark,
+            style: TextStyle(
+              fontSize: 18,
+              color: accent,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
             ),
@@ -437,19 +463,16 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
   BoxDecoration _box() => BoxDecoration(
     color: Colors.white,
     borderRadius: BorderRadius.circular(16),
-    border: Border.all(color: const Color(0xFFE9EDF2)),
+    border: Border.all(color: AppColor.pinkMid.withOpacity(0.15)),
     boxShadow: [
       BoxShadow(
-        color: Colors.black.withOpacity(0.06),
+        color: AppColor.pinkMid.withOpacity(0.08),
         blurRadius: 12,
         offset: const Offset(0, 6),
       ),
     ],
   );
 
-  /// Format jam untuk tampilan:
-  /// - Jika null/empty → "-- : -- : --"
-  /// - Jika "07:30" atau "07:30:00" → ambil 5 char pertama ("07:30")
   String _fmtTime(String? raw) {
     if (raw == null || raw.trim().isEmpty) return '-- : -- : --';
     final s = raw.trim();

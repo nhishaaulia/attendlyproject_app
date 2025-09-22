@@ -226,17 +226,14 @@ class _RegisterPageState extends State<RegisterPage> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: AppColor.pinkPrimary,
+                                    color: AppColor.bg,
                                     width: 1,
                                   ),
                                 ),
                                 child: CircleAvatar(
-                                  radius: 48,
-                                  backgroundColor: const Color.fromARGB(
-                                    255,
-                                    251,
-                                    251,
-                                    251,
+                                  radius: 40,
+                                  backgroundColor: AppColor.pinkMid.withOpacity(
+                                    .3,
                                   ),
                                   backgroundImage: _profileFile != null
                                       ? FileImage(_profileFile!)
@@ -245,7 +242,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ? const Icon(
                                           Icons.person_add_alt,
                                           size: 42,
-                                          color: AppColor.pinkLight,
+                                          color: AppColor.bg,
                                         )
                                       : null,
                                 ),

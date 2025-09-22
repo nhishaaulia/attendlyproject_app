@@ -1,4 +1,6 @@
+import 'package:attendlyproject_app/bottom_navigationbar/overview_page.dart';
 import 'package:attendlyproject_app/copyright/copy_right.dart';
+import 'package:attendlyproject_app/extension/navigation.dart';
 import 'package:attendlyproject_app/model/login_model.dart';
 import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
 import 'package:attendlyproject_app/services/auth_services.dart';
@@ -7,7 +9,7 @@ import 'package:flutter/material.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
-  static const id = "/page";
+  static const id = "/loginpage";
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -20,66 +22,64 @@ class _LoginPageState extends State<LoginPage> {
 
   bool isPasswordVisible = false;
   bool isSubmitting = false;
+  bool isVisibility = false;
+  // bool _obscurePassword = true;
+  bool isLoading = false;
 
-  // Fungsi untuk menangani login pengguna
-  Future<void> _manageUserLogin() async {
-    // Validasi form
-    if (!_formKey.currentState!.validate()) return;
-
-    // Tampilkan indikator loading
-    setState(() => isSubmitting = true);
-
-    try {
-      // Hapus login lama jika ada
-      await PreferenceHandler.removeLogin();
-
-      LoginUserModel result;
-
-      try {
-        // Coba login tanpa token
-        result = await AuthService.loginNoToken(emailC.text.trim(), passC.text);
-      } catch (e) {
-        // Kalau gagal, login pakai token kosong sebagai fallback
-        result = await AuthService.loginWithToken(
-          emailC.text.trim(),
-          passC.text,
-          '',
-        );
-      }
-
-      // Simpan session / flag login
-      await PreferenceHandler.saveLogin();
-
-      // Cek kalau widget masih aktif sebelum akses context / setState
-      if (!mounted) return;
-
-      // Tampilkan SnackBar sukses
+  LoginUserModel? user;
+  String? errorMessage;
+  void loginUser() async {
+    setState(() {
+      isSubmitting = true;
+      isLoading = true;
+      errorMessage = null;
+    });
+    final email = emailC.text.trim();
+    final password = passC.text.trim();
+    // final name = nameController.text.trim();
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Login successful, welcome back!'),
-          backgroundColor: Colors.green,
+          content: Text("Email, Password, dan Nama tidak boleh kosong"),
         ),
       );
+      isLoading = false;
 
-      // Navigasi ke halaman Dashboard
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/OverviewPage',
-        (route) => false, // hapus semua route sebelumnya
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('We could not log you in. Please try again: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      // Sembunyikan indikator loading
-      if (mounted) setState(() => isSubmitting = false);
+      return;
     }
+    try {
+      final result = await AuthService.loginUser(
+        email: email,
+        password: password,
+        // name: name,
+      );
+      setState(() {
+        user = result;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Login Succesfully")));
+      PreferenceHandler.saveToken(user?.data.token.toString() ?? "");
+      // final savedUserId = await PreferenceHandler.getUserId();
+      // print("Saved User Id: $savedUserId");
+      // Navigator.pushReplacementNamed(Dashboard1.id);
+      context.pushReplacement(OverviewPage());
+
+      print(user?.toJson());
+    } catch (e) {
+      print(e);
+      setState(() {
+        errorMessage = e.toString();
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage.toString())));
+    } finally {
+      setState(() {});
+      isLoading = false;
+      isSubmitting = false;
+    }
+    // context.pushReplacementNamed(Dashboard1.id);
   }
 
   @override
@@ -113,16 +113,17 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        const SizedBox(height: 20),
                         // LOGO
                         SizedBox(
-                          height: 70,
+                          height: 140,
                           child: Image.asset(
                             "assets/images/attendly_logo.png",
                             fit: BoxFit.contain,
                           ),
                         ),
 
-                        const SizedBox(height: 50),
+                        const SizedBox(height: 30),
                         const Text(
                           "Log In",
                           style: TextStyle(
@@ -256,8 +257,10 @@ class _LoginPageState extends State<LoginPage> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                            onPressed: () =>
-                                Navigator.pushNamed(context, '/forgotpassword'),
+                            onPressed: () => Navigator.pushNamed(
+                              context,
+                              '/forgot-reset-password',
+                            ),
 
                             child: const Text(
                               "Forgot Password?",
@@ -280,7 +283,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: ElevatedButton(
                             onPressed: isSubmitting
                                 ? null
-                                : _manageUserLogin, // Memanggil fungsi login
+                                : loginUser, // Memanggil fungsi login
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColor.pinkMid,
                               shape: RoundedRectangleBorder(
@@ -331,7 +334,7 @@ class _LoginPageState extends State<LoginPage> {
                           ],
                         ),
                         // Copyright
-                        const SizedBox(height: 120),
+                        const SizedBox(height: 50),
                         CopyRightText(),
                       ],
                     ),
