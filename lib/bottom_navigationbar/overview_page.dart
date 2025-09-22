@@ -1,5 +1,6 @@
 import 'package:attendlyproject_app/bottom_navigationbar/flashytab_bar.dart';
-import 'package:attendlyproject_app/pages/attendance/attendancepage.dart';
+import 'package:attendlyproject_app/pages/Profile/profile_page.dart';
+import 'package:attendlyproject_app/pages/attendance/detail_attendance_page.dart';
 import 'package:attendlyproject_app/pages/dashboard/dashboardpage.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +14,11 @@ class OverviewPage extends StatefulWidget {
 class _OverviewPageState extends State<OverviewPage> {
   int _selectedIndex = 0;
 
-  final List<Widget> _listWidget = const [DashboardPage(), Attendancepage()];
+  final List<Widget> _listWidget = const [
+    DashboardPage(),
+    DetailAttendancePage(),
+    ProfilePage(),
+  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -33,7 +38,8 @@ class _OverviewPageState extends State<OverviewPage> {
         }),
         items: [
           FlashyTabBarItem(icon: Icon(Icons.home), title: Text('Dashboard')),
-          FlashyTabBarItem(icon: Icon(Icons.event), title: Text('Event')),
+          FlashyTabBarItem(icon: Icon(Icons.history), title: Text('History')),
+          FlashyTabBarItem(icon: Icon(Icons.person), title: Text('Profile')),
         ],
       ),
     );

@@ -1,5 +1,5 @@
-import 'package:attendlyproject_app/pages/loginpage.dart';
-import 'package:attendlyproject_app/pages/registerpage.dart';
+import 'package:attendlyproject_app/pages/auth/login_page.dart';
+import 'package:attendlyproject_app/pages/auth/register_page.dart';
 import 'package:flutter/material.dart';
 // import 'login_page.dart';
 // import 'register_page.dart';

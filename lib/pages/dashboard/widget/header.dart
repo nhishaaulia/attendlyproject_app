@@ -1,47 +1,179 @@
-import 'package:attendlyproject_app/constant/app_color.dart';
+import 'package:attendlyproject_app/model/profile_model.dart';
+// === IMPORT buat ambil profil & token ===
+import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
+import 'package:attendlyproject_app/services/profile_service.dart';
+import 'package:attendlyproject_app/utils/app_color.dart';
 import 'package:flutter/material.dart';
 
-class HeaderWidget extends StatelessWidget {
-  const HeaderWidget({super.key});
+class HeaderDashboard extends StatefulWidget {
+  const HeaderDashboard({super.key});
+
+  @override
+  State<HeaderDashboard> createState() => _HeaderDashboardState();
+}
+
+class _HeaderDashboardState extends State<HeaderDashboard> {
+  DataProfile? _profile; // hasil API getProfile
+  bool _loading = true; // state loading awal
+  String? _error; // error message (kalau ada)
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHeader(); // saat widget dibuat, langsung muat data
+  }
+
+  /// Muat header:
+  /// 1) Ambil token dari storage
+  /// 2) Panggil API: ProfileService.getProfile(token)
+  Future<void> _loadHeader() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final token = await PreferenceHandler.getToken();
+      if (token == null || token.isEmpty) {
+        throw Exception('Token tidak ditemukan. Silakan login ulang.');
+      }
+
+      final data = await ProfileService.getProfile(token); // <— PANGGIL API
+
+      if (!mounted) return;
+      setState(() {
+        _profile = data;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      // === LOADING STATE ===
+      return Padding(
+        padding: const EdgeInsets.only(top: 40.0, left: 10.0, right: 16),
+        child: Row(
+          children: [
+            const CircleAvatar(radius: 30, backgroundColor: Color(0xFFE9EDF2)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _shimmerBox(height: 16, width: 160),
+                  const SizedBox(height: 8),
+                  _shimmerBox(height: 14, width: 200),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_error != null) {
+      // === ERROR STATE ===
+      return Padding(
+        padding: const EdgeInsets.only(top: 40.0, left: 10.0, right: 16),
+        child: Row(
+          children: [
+            const CircleAvatar(radius: 30, backgroundColor: Color(0xFFE9EDF2)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Gagal memuat profil',
+                      style: TextStyle(
+                        color: Colors.red.shade600,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _loadHeader, // retry
+                    icon: const Icon(Icons.refresh),
+                    tooltip: 'Retry',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final p = _profile!;
+    final photoUrl = (p.profilePhoto != null && p.profilePhoto!.isNotEmpty)
+        ? (p.profilePhoto!.startsWith('http')
+              ? p.profilePhoto!
+              : 'https://appabsensi.mobileprojp.com/public/${p.profilePhoto!}')
+        : null;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.only(top: 40.0, left: 10.0, right: 16.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CircleAvatar(
-            radius: 22,
-            backgroundImage: AssetImage("assets/images/avatar_placeholder.png"),
+          // Foto profil
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: AppColor.border,
+            backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+            child: photoUrl == null
+                ? const Icon(Icons.person, color: AppColor.textDark, size: 30)
+                : null,
           ),
-          const SizedBox(width: 12),
-          const Expanded(
+          const SizedBox(width: 16),
+
+          // Info profil
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Nhisha Aulia",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: AppColor.textDark,
+                  'Welcome, ${p.name}!',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.black,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
-                  "Junior Mobile Dev",
-                  style: TextStyle(color: Colors.black54, fontSize: 12),
+                  '${p.training.title} - Batch ${p.batch.batchKe}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppColor.grey),
                 ),
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_outlined,
-              color: AppColor.textDark,
-            ),
-          ),
         ],
+      ),
+    );
+  }
+
+  // skeleton kecil
+  Widget _shimmerBox({required double height, required double width}) {
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F6FA),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColor.border),
       ),
     );
   }
