@@ -1,6 +1,6 @@
+import 'package:attendlyproject_app/bottom_navigationbar/overview_page.dart';
 import 'package:attendlyproject_app/pages/auth/login_page.dart';
-import 'package:attendlyproject_app/pages/dashboard/dashboardpage.dart';
-import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
+import 'package:attendlyproject_app/pages/preference/shared.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -24,7 +24,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (loginKey == true) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => DashboardPage()),
+        MaterialPageRoute(builder: (context) => OverviewPage()),
       );
     } else {
       Navigator.pushReplacement(

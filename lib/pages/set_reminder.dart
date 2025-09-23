@@ -1,16 +1,15 @@
 import 'dart:async';
 
-import 'package:attendlyproject_app/utils/app_color.dart';
 import 'package:flutter/material.dart';
 
-class ReminderCheckIn extends StatefulWidget {
-  const ReminderCheckIn({super.key});
+class ReminderScreen extends StatefulWidget {
+  const ReminderScreen({super.key});
 
   @override
-  State<ReminderCheckIn> createState() => _ReminderCheckInState();
+  State<ReminderScreen> createState() => _ReminderScreenState();
 }
 
-class _ReminderCheckInState extends State<ReminderCheckIn> {
+class _ReminderScreenState extends State<ReminderScreen> {
   late Timer _timer;
   String _digitalClock = "";
   String _statusText = "";
@@ -47,6 +46,7 @@ class _ReminderCheckInState extends State<ReminderCheckIn> {
             _alreadyTriggered = true;
           }
         } else {
+          // sudah lewat → otomatis pindah ke hari berikutnya
           jamMasuk = jamMasuk!.add(const Duration(days: 1));
           _alreadyTriggered = false;
 
@@ -71,7 +71,7 @@ class _ReminderCheckInState extends State<ReminderCheckIn> {
     messenger.showMaterialBanner(
       MaterialBanner(
         content: Text(message),
-        leading: const Icon(Icons.notifications_active, color: Colors.pink),
+        leading: const Icon(Icons.notifications_active, color: Colors.blue),
         backgroundColor: Colors.white,
         actions: [
           TextButton(
@@ -105,6 +105,7 @@ class _ReminderCheckInState extends State<ReminderCheckIn> {
         pickedTime.minute,
       );
 
+      // kalau jam yang dipilih sudah lewat → otomatis jadwalkan besok
       if (selectedDateTime.isBefore(now)) {
         selectedDateTime = selectedDateTime.add(const Duration(days: 1));
       }
@@ -122,47 +123,27 @@ class _ReminderCheckInState extends State<ReminderCheckIn> {
         ? "${jamMasuk!.hour.toString().padLeft(2, '0')}:${jamMasuk!.minute.toString().padLeft(2, '0')} (${jamMasuk!.day}/${jamMasuk!.month}/${jamMasuk!.year})"
         : "Belum dipilih";
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        // padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColor.pinkMid,
-          borderRadius: BorderRadius.circular(20),
-        ),
+    return Scaffold(
+      appBar: AppBar(title: const Text("Reminder Jam Digital")),
+      body: Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               _digitalClock,
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             Text(
               _statusText,
-              style: const TextStyle(fontSize: 16, color: Colors.white),
+              style: const TextStyle(fontSize: 20),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
-            Text(
-              "Jam masuk: $jamMasukText",
-              style: const TextStyle(color: Colors.white70),
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 30),
+            Text("Jam masuk: $jamMasukText"),
+            const SizedBox(height: 10),
             ElevatedButton(
               onPressed: _pickJamMasuk,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.pink,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
               child: const Text("Atur Jam Masuk"),
             ),
           ],

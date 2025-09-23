@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:attendlyproject_app/extension/navigation.dart';
 import 'package:attendlyproject_app/model/history_absen_model.dart';
 import 'package:attendlyproject_app/pages/attendance/detail_attendance_page.dart';
-import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
+import 'package:attendlyproject_app/pages/preference/shared.dart';
 import 'package:attendlyproject_app/services/all_condition_absen_Service.dart';
 import 'package:attendlyproject_app/utils/app_color.dart';
 import 'package:flutter/material.dart';

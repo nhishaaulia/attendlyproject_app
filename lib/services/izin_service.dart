@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:attendlyproject_app/endpoint/endpoint.dart';
 import 'package:attendlyproject_app/model/izin_model.dart';
-import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
+import 'package:attendlyproject_app/pages/preference/shared.dart';
 import 'package:http/http.dart' as http;
 
 class IzinService {

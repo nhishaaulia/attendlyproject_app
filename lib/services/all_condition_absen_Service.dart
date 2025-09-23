@@ -10,7 +10,7 @@ import 'package:attendlyproject_app/model/history_absen_model.dart';
 
 import 'package:attendlyproject_app/model/statistik_absen_model.dart';
 import 'package:attendlyproject_app/model/today_absen_model.dart';
-import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
+import 'package:attendlyproject_app/pages/preference/shared.dart';
 import 'package:http/http.dart' as http;
 
 /// Service

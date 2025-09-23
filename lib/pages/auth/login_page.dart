@@ -2,10 +2,11 @@ import 'package:attendlyproject_app/bottom_navigationbar/overview_page.dart';
 import 'package:attendlyproject_app/copyright/copy_right.dart';
 import 'package:attendlyproject_app/extension/navigation.dart';
 import 'package:attendlyproject_app/model/login_model.dart';
-import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
+import 'package:attendlyproject_app/pages/preference/shared.dart';
 import 'package:attendlyproject_app/services/auth_services.dart';
 import 'package:attendlyproject_app/utils/app_color.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -28,6 +29,60 @@ class _LoginPageState extends State<LoginPage> {
 
   LoginUserModel? user;
   String? errorMessage;
+  // void loginUser() async {
+  //   setState(() {
+  //     isSubmitting = true;
+  //     isLoading = true;
+  //     errorMessage = null;
+  //   });
+  //   final email = emailC.text.trim();
+  //   final password = passC.text.trim();
+  //   // final name = nameController.text.trim();
+  //   if (email.isEmpty || password.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text("Email, Password, dan Nama tidak boleh kosong"),
+  //       ),
+  //     );
+  //     isLoading = false;
+
+  //     return;
+  //   }
+  //   try {
+  //     final result = await AuthService.loginUser(
+  //       email: email,
+  //       password: password,
+  //       // name: name,
+  //     );
+  //     setState(() {
+  //       user = result;
+  //     });
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).
+  //     showSnackBar(const SnackBar(content: Text("Login Succesfully")));
+  //     PreferenceHandler.saveToken(user?.data.token.toString() ?? "");
+  //     final savedUserId = await PreferenceHandler.getUserId();
+  //     // print("Saved User Id: $savedUserId");
+  //     // Navigator.pushReplacementNamed(Dashboard1.id);
+  //     context.pushReplacement(OverviewPage());
+
+  //     print(user?.toJson());
+  //   } catch (e) {
+  //     print(e);
+  //     setState(() {
+  //       errorMessage = e.toString();
+  //     });
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text(errorMessage.toString())));
+  //   } finally {
+  //     setState(() {});
+  //     isLoading = false;
+  //     isSubmitting = false;
+  //   }
+  //   // context.pushReplacementNamed(Dashboard1.id);
+  // }
   void loginUser() async {
     setState(() {
       isSubmitting = true;
@@ -36,50 +91,140 @@ class _LoginPageState extends State<LoginPage> {
     });
     final email = emailC.text.trim();
     final password = passC.text.trim();
-    // final name = nameController.text.trim();
-    if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Email, Password, dan Nama tidak boleh kosong"),
-        ),
-      );
-      isLoading = false;
 
+    if (email.isEmpty || password.isEmpty) {
+      // Tampilkan Lottie error untuk field kosong
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          Future.delayed(Duration(seconds: 2), () {
+            Navigator.of(context).pop();
+          });
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Lottie.asset(
+                  //   'assets/error-animation.json', // Ganti dengan path Lottie error Anda
+                  //   width: 150,
+                  //   height: 150,
+                  //   fit: BoxFit.cover,
+                  // // ),
+                  // SizedBox(height: 16),
+                  Text(
+                    "Email dan Password tidak boleh kosong",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
+
     try {
       final result = await AuthService.loginUser(
         email: email,
         password: password,
-        // name: name,
       );
       setState(() {
         user = result;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Login Succesfully")));
-      PreferenceHandler.saveToken(user?.data.token.toString() ?? "");
-      // final savedUserId = await PreferenceHandler.getUserId();
-      // print("Saved User Id: $savedUserId");
-      // Navigator.pushReplacementNamed(Dashboard1.id);
-      context.pushReplacement(OverviewPage());
 
+      // Tampilkan Lottie success
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          Future.delayed(Duration(seconds: 2), () {
+            Navigator.of(context).pop();
+            PreferenceHandler.saveToken(user?.data.token.toString() ?? "");
+            context.pushReplacement(OverviewPage());
+          });
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white, // Background hitam
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Lottie.asset(
+                    'assets/lottie/sukses_animation.json', // Ganti dengan path Lottie success Anda
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.cover,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    "Login Successfully",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
       print(user?.toJson());
     } catch (e) {
       print(e);
       setState(() {
         errorMessage = e.toString();
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage.toString())));
+      // Tampilkan Lottie error
+      // showDialog(
+      //   context: context,
+      //   barrierDismissible: false,
+      //   builder: (BuildContext context) {
+      //     Future.delayed(Duration(seconds: 2), () {
+      //       Navigator.of(context).pop();
+      //     });
+      //     return Dialog(
+      //       backgroundColor: Colors.transparent,
+      //       child: Column(
+      //         mainAxisSize: MainAxisSize.min,
+      //         children: [
+      //           Lottie.asset(
+      //             'assets/error-animation.json',
+      //             width: 150,
+      //             height: 150,
+      //             fit: BoxFit.cover,
+      //           ),
+      //           SizedBox(height: 16),
+      //           Text(
+      //             errorMessage.toString(),
+      //             style: TextStyle(color: Colors.white, fontSize: 16),
+      //             textAlign: TextAlign.center,
+      //           ),
+      //         ],
+      //       ),
+      //     );
+      //   },
+      // );
     } finally {
-      setState(() {});
-      isLoading = false;
-      isSubmitting = false;
+      setState(() {
+        isLoading = false;
+        isSubmitting = false;
+      });
     }
-    // context.pushReplacementNamed(Dashboard1.id);
   }
 
   @override

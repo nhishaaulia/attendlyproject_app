@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:attendlyproject_app/copyright/copy_right.dart';
 import 'package:attendlyproject_app/model/profile_model.dart';
-import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
+import 'package:attendlyproject_app/pages/preference/shared.dart';
 import 'package:attendlyproject_app/services/profile_service.dart';
 import 'package:attendlyproject_app/splash_screen/splash_screen.dart';
 import 'package:attendlyproject_app/utils/app_color.dart';

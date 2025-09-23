@@ -1,6 +1,6 @@
 import 'package:attendlyproject_app/copyright/copy_right.dart';
 import 'package:attendlyproject_app/model/today_absen_model.dart';
-import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
+import 'package:attendlyproject_app/pages/preference/shared.dart';
 import 'package:attendlyproject_app/services/all_condition_absen_Service.dart';
 import 'package:attendlyproject_app/services/check_in_out_service.dart';
 import 'package:attendlyproject_app/utils/app_color.dart';
@@ -88,6 +88,7 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
     setState(() {
       _currentPosition = LatLng(pos.latitude, pos.longitude);
       _address = addr;
+      print(addr);
       _marker = Marker(
         markerId: const MarkerId('Location'),
         position: _currentPosition,
@@ -221,7 +222,7 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
                       zoom: _currentZoom,
                     ),
                     myLocationEnabled: true,
-                    myLocationButtonEnabled: false,
+                    myLocationButtonEnabled: true,
                     zoomControlsEnabled: false,
                     markers: _marker != null ? {_marker!} : {},
                     onMapCreated: (c) => _mapController = c,

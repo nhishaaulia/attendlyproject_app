@@ -1,7 +1,9 @@
+import 'package:attendlyproject_app/extension/navigation.dart';
 import 'package:attendlyproject_app/pages/dashboard/widget/check_in_out.dart';
 import 'package:attendlyproject_app/pages/dashboard/widget/header.dart';
 import 'package:attendlyproject_app/pages/dashboard/widget/history.dart';
-import 'package:attendlyproject_app/pages/dashboard/widget/submit_absen.dart';
+import 'package:attendlyproject_app/pages/dashboard/widget/takeattendance.dart';
+import 'package:attendlyproject_app/pages/izin%20page/izin_page.dart';
 import 'package:flutter/material.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -40,18 +42,32 @@ class _DashboardpageState extends State<DashboardPage> {
               initialCheckOutTime: '',
             ),
 
-            // const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-            // const DigitalClockCountdown(),
-            const SizedBox(height: 20),
+            // ReminderCheckIn(),
+
+            // // const DigitalClockCountdown(),
+            // const SizedBox(height: 20),
             // Tombol submit absen → buka halaman map
-            SubmitAbsenWidget(
-              onMapTap: () async {
-                // buka halaman map
-                await Navigator.pushNamed(context, '/gmapspage');
+            // SubmitAbsenWidget(
+            //   onMapTap: () async {
+            //     // buka halaman map
+            //     await Navigator.pushNamed(context, '/gmapspage');
 
-                // setelah balik dari map, reload data checkin/checkout
+            // // setelah balik dari map, reload data checkin/checkout
+            // checkKey.currentState?.reload();
+            //   },
+            // ),
+            TakeAttendancePage(
+              onMapTap: () async {
+                await Navigator.pushNamed(context, '/gmapspage');
+                // context.push(const CheckInOutPage());
                 checkKey.currentState?.reload();
+              },
+
+              onIzinTap: () {
+                // arahkan ke halaman izin
+                context.pushReplacement(const IzinPage());
               },
             ),
 

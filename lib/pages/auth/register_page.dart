@@ -6,7 +6,7 @@ import 'package:attendlyproject_app/extension/navigation.dart';
 import 'package:attendlyproject_app/model/batches_model.dart';
 import 'package:attendlyproject_app/model/training_model.dart';
 import 'package:attendlyproject_app/pages/auth/login_page.dart';
-import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
+import 'package:attendlyproject_app/pages/preference/shared.dart';
 import 'package:attendlyproject_app/services/auth_services.dart';
 import 'package:attendlyproject_app/services/batches_services.dart';
 import 'package:attendlyproject_app/services/trainings_services.dart';

@@ -1,6 +1,5 @@
 import 'package:attendlyproject_app/model/today_absen_model.dart';
-// API & token
-import 'package:attendlyproject_app/preferences/shared_preferenced.dart';
+import 'package:attendlyproject_app/pages/preference/shared.dart';
 import 'package:attendlyproject_app/services/all_condition_absen_Service.dart';
 import 'package:attendlyproject_app/utils/app_color.dart';
 import 'package:flutter/material.dart';
@@ -128,7 +127,7 @@ class CheckInOutContainerState extends State<CheckInOutContainer> {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColor.pinkMid.withOpacity(0.4), // shadow pink
+            color: AppColor.pinkMid.withOpacity(0.5), // shadow pink
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
