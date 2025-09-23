@@ -96,6 +96,40 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
     });
   }
 
+  // === Fungsi untuk kembali ke lokasi saat ini ===
+  Future<void> _goToCurrentLocation() async {
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      setState(() {
+        _currentPosition = LatLng(pos.latitude, pos.longitude);
+        _marker = Marker(
+          markerId: const MarkerId('Location'),
+          position: _currentPosition,
+        );
+      });
+
+      if (_mapController != null) {
+        _mapController!.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(target: _currentPosition, zoom: _currentZoom),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to get current location: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _animateZoom(double delta) async {
     if (_mapController == null) return;
     final newZoom = (_currentZoom + delta).clamp(2.0, 21.0);
@@ -233,6 +267,12 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
                     bottom: 10,
                     child: Column(
                       children: [
+                        // Tombol Current Location
+                        _roundIconButton(
+                          icon: Icons.my_location,
+                          onTap: _goToCurrentLocation,
+                        ),
+                        const SizedBox(height: 10),
                         _roundIconButton(
                           icon: Icons.add,
                           onTap: () => _animateZoom(1),

@@ -83,56 +83,24 @@ class _LoginPageState extends State<LoginPage> {
   //   }
   //   // context.pushReplacementNamed(Dashboard1.id);
   // }
+
   void loginUser() async {
     setState(() {
       isSubmitting = true;
       isLoading = true;
       errorMessage = null;
     });
+
     final email = emailC.text.trim();
     final password = passC.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      // Tampilkan Lottie error untuk field kosong
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          Future.delayed(Duration(seconds: 2), () {
-            Navigator.of(context).pop();
-          });
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            child: Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Lottie.asset(
-                  //   'assets/error-animation.json', // Ganti dengan path Lottie error Anda
-                  //   width: 150,
-                  //   height: 150,
-                  //   fit: BoxFit.cover,
-                  // // ),
-                  // SizedBox(height: 16),
-                  Text(
-                    "Email dan Password tidak boleh kosong",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Email, Password, dan Nama tidak boleh kosong"),
+        ),
       );
-      setState(() {
-        isLoading = false;
-      });
+      isLoading = false;
       return;
     }
 
@@ -141,89 +109,70 @@ class _LoginPageState extends State<LoginPage> {
         email: email,
         password: password,
       );
+
       setState(() {
         user = result;
       });
 
-      // Tampilkan Lottie success
+      // SnackBar tetap
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Login Succesfully")));
+
+      // Simpan token
+      PreferenceHandler.saveToken(user?.data.token.toString() ?? "");
+      final savedUserId = await PreferenceHandler.getUserId();
+      print("Saved User Id: $savedUserId");
+
+      // Tampilkan Lottie dialog
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (BuildContext context) {
-          Future.delayed(Duration(seconds: 2), () {
-            Navigator.of(context).pop();
-            PreferenceHandler.saveToken(user?.data.token.toString() ?? "");
-            context.pushReplacement(OverviewPage());
-          });
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            child: Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white, // Background hitam
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Lottie.asset(
-                    'assets/lottie/sukses_animation.json', // Ganti dengan path Lottie success Anda
-                    width: 150,
-                    height: 150,
-                    fit: BoxFit.cover,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    "Login Successfully",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ],
-              ),
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Lottie.asset(
+                  'assets/lottie/sukses_animation.json', // ganti dengan file lottie kamu
+                  width: 150,
+                  height: 150,
+                  repeat: false,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  "Login Berhasil!",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       );
+
+      // Tutup dialog otomatis setelah 2 detik, lalu push ke OverviewPage
+      Future.delayed(const Duration(seconds: 2), () {
+        Navigator.of(context).pop(); // tutup dialog
+        context.pushReplacement(OverviewPage());
+      });
+
       print(user?.toJson());
     } catch (e) {
       print(e);
       setState(() {
         errorMessage = e.toString();
       });
-      // Tampilkan Lottie error
-      // showDialog(
-      //   context: context,
-      //   barrierDismissible: false,
-      //   builder: (BuildContext context) {
-      //     Future.delayed(Duration(seconds: 2), () {
-      //       Navigator.of(context).pop();
-      //     });
-      //     return Dialog(
-      //       backgroundColor: Colors.transparent,
-      //       child: Column(
-      //         mainAxisSize: MainAxisSize.min,
-      //         children: [
-      //           Lottie.asset(
-      //             'assets/error-animation.json',
-      //             width: 150,
-      //             height: 150,
-      //             fit: BoxFit.cover,
-      //           ),
-      //           SizedBox(height: 16),
-      //           Text(
-      //             errorMessage.toString(),
-      //             style: TextStyle(color: Colors.white, fontSize: 16),
-      //             textAlign: TextAlign.center,
-      //           ),
-      //         ],
-      //       ),
-      //     );
-      //   },
-      // );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage.toString())));
     } finally {
-      setState(() {
-        isLoading = false;
-        isSubmitting = false;
-      });
+      setState(() {});
+      isLoading = false;
+      isSubmitting = false;
     }
   }
 
