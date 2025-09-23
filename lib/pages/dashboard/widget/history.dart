@@ -210,7 +210,7 @@ class _HistoryCard extends StatelessWidget {
             ],
           ),
           if ((item.status.toLowerCase() == 'izin' ||
-                  item.status.toLowerCase() == 'leave') &&
+                  item.status.toLowerCase() == 'permssion') &&
               (item.alasanIzin ?? '').isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
@@ -266,10 +266,10 @@ class _HistoryCard extends StatelessWidget {
         label = 'PRESENT';
         break;
       case 'izin':
-      case 'leave':
+      case 'permission':
         bg = const Color(0xFFFCCFCF);
         fg = const Color(0xFFB94B4B);
-        label = 'LEAVE';
+        label = 'PERMISSION';
         break;
       default:
         bg = const Color(0xFFF1F2F6);

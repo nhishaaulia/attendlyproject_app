@@ -253,4 +253,14 @@ class AttendanceApiService {
       return null;
     }
   }
+
+  static Future<void> deleteAbsen(String token, int absenId) async {
+    final url = Uri.parse(Endpoint.deleteAbsen(absenId));
+    final response = await http.delete(url, headers: _authJsonHeaders(token));
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception(
+        'Failed to delete attendance: \nStatus: ${response.statusCode}\nBody: ${response.body}',
+      );
+    }
+  }
 }

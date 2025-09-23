@@ -12,9 +12,9 @@ import 'package:attendlyproject_app/services/batches_services.dart';
 import 'package:attendlyproject_app/services/trainings_services.dart';
 import 'package:attendlyproject_app/utils/app_color.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // untuk ambil foto dari galeri/kamera
+import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
-import 'package:mime/mime.dart'; // untuk deteksi MIME type (jpg/png/webp)
+import 'package:mime/mime.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -25,62 +25,51 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  // kunci form -> untuk validasi semua field
   final _formKey = GlobalKey<FormState>();
 
-  // controller textfield
   final TextEditingController nameC = TextEditingController();
   final TextEditingController emailC = TextEditingController();
   final TextEditingController passC = TextEditingController();
   final TextEditingController confirmC = TextEditingController();
 
-  // toggle visibility password
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
 
-  // flag loading
-  bool isSubmitting = false; // untuk tombol register
-  bool isLoadingList = true; // untuk dropdown batch/training
+  bool isSubmitting = false;
+  bool isLoadingList = true;
 
-  // list data batch & training dari API
   List<DataBatches> batches = [];
   List<DataTrainings> trainings = [];
 
-  // item yang dipilih di dropdown
   DataBatches? selectedBatch;
   DataTrainings? selectedTraining;
 
-  // opsi gender (static)
   final List<Map<String, String>> genderOptions = [
     {'label': 'Male', 'value': 'L'},
     {'label': 'Female', 'value': 'P'},
   ];
-  String? selectedGenderCode; // nilai yg dikirim ke API ('L'/'P')
+  String? selectedGenderCode;
 
-  // foto profil opsional
   File? _profileFile;
 
-  // buka galeri untuk pilih foto profil
   Future<void> _pickAvatar() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) setState(() => _profileFile = File(picked.path));
   }
 
-  // helper untuk convert File -> base64 DataURL (agar bisa dikirim ke API)
   Future<String> _fileToDataUrl(File file) async {
-    final bytes = await file.readAsBytes(); // baca file sebagai bytes
-    final base64Str = base64Encode(bytes); // encode jadi base64 string
-    final mimeType = lookupMimeType(file.path) ?? 'image/jpeg'; // deteksi MIME
-    return 'data:$mimeType;base64,$base64Str'; // format DataURL
+    final bytes = await file.readAsBytes();
+    final base64Str = base64Encode(bytes);
+    final mimeType = lookupMimeType(file.path) ?? 'image/jpeg';
+    return 'data:$mimeType;base64,$base64Str';
   }
 
   @override
   void initState() {
     super.initState();
-    _loadDropdownData(); // ambil data training & batch dari API
+    _loadDropdownData();
   }
 
-  // ambil data batch & training dari API
   Future<void> _loadDropdownData() async {
     setState(() => isLoadingList = true);
     try {
@@ -90,11 +79,8 @@ class _RegisterPageState extends State<RegisterPage> {
       setState(() {
         trainings = trainingsResponse.data;
         batches = batchesResponse.data;
-
-        // set default pilihan pertama
         if (trainings.isNotEmpty) selectedTraining = trainings.first;
         if (batches.isNotEmpty) selectedBatch = batches.first;
-
         isLoadingList = false;
       });
     } catch (e) {
@@ -106,20 +92,15 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  // fungsi utama untuk submit register
   Future<void> _submitRegister() async {
-    // cek validasi form (wajib diisi semua)
     if (!_formKey.currentState!.validate()) return;
 
-    // cek gender wajib dipilih
     if (selectedGenderCode == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please choose your gender')),
       );
       return;
     }
-
-    // cek dropdown batch & training wajib dipilih
     if (selectedBatch == null || selectedTraining == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please choose batch and training')),
@@ -127,20 +108,18 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    // siapkan data untuk API
     final int batchId = selectedBatch!.id;
     final int trainingId = selectedTraining!.id;
     final String jenisKelamin = selectedGenderCode!;
     String profilePhoto = "";
     if (_profileFile != null) {
-      profilePhoto = await _fileToDataUrl(_profileFile!); // convert ke base64
+      profilePhoto = await _fileToDataUrl(_profileFile!);
     }
 
     setState(() => isSubmitting = true);
 
     try {
-      // panggil API register dari AuthService
-      final res = await AuthService.registerUser(
+      await AuthService.registerUser(
         nameC.text.trim(),
         emailC.text.trim(),
         passC.text,
@@ -150,16 +129,12 @@ class _RegisterPageState extends State<RegisterPage> {
         trainingId,
       );
 
-      // simpan flag login
       await PreferenceHandler.saveLogin();
-
-      if (!mounted) return;
       if (!mounted) return;
 
-      // Ganti snackbar dengan dialog Lottie
       showDialog(
         context: context,
-        barrierDismissible: false, // biar ga bisa ditutup manual
+        barrierDismissible: false,
         builder: (context) => Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -170,40 +145,31 @@ class _RegisterPageState extends State<RegisterPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Lottie.asset(
-                  'assets/lottie/sukses_animation.json', // ganti sesuai file Lottie kamu
+                  'assets/lottie/sukses_animation.json',
                   width: 150,
                   height: 150,
                   repeat: false,
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  res.message ?? 'Registration complete! Please log in.',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
+                const Text(
+                  "Registration complete! Please log in.",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
           ),
         ),
       );
-      // Tutup dialog otomatis setelah 2 detik
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) Navigator.of(context).pop();
-      });
 
-      // redirect ke LoginPage setelah berhasil register
-      context.pushReplacement(LoginPage());
+      Future.delayed(const Duration(seconds: 4), () {
+        Navigator.of(context).pop();
+        context.pushReplacement(LoginPage());
+      });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Registration failed: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Registration Failed!")));
     } finally {
       if (mounted) setState(() => isSubmitting = false);
     }
@@ -211,7 +177,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    // jangan lupa dispose controller agar tidak memory leak
     nameC.dispose();
     emailC.dispose();
     passC.dispose();
@@ -219,7 +184,6 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  // ----------------- UI -----------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -249,7 +213,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Avatar foto profil (opsional)
                     Center(
                       child: Column(
                         children: [
@@ -267,14 +230,14 @@ class _RegisterPageState extends State<RegisterPage> {
                                 child: CircleAvatar(
                                   radius: 40,
                                   backgroundColor: AppColor.pinkMid.withOpacity(
-                                    .3,
+                                    .5,
                                   ),
                                   backgroundImage: _profileFile != null
                                       ? FileImage(_profileFile!)
                                       : null,
                                   child: _profileFile == null
                                       ? const Icon(
-                                          Icons.person_add_alt,
+                                          Icons.person_add,
                                           size: 42,
                                           color: AppColor.bg,
                                         )
@@ -311,13 +274,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 24),
 
-                    // FORM INPUT
                     Form(
                       key: _formKey,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // NAME
                           const _FieldLabel("Name"),
                           const SizedBox(height: 8),
                           _buildTextField(
@@ -332,7 +293,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                           const SizedBox(height: 14),
 
-                          // EMAIL
                           const _FieldLabel("Email"),
                           const SizedBox(height: 8),
                           _buildTextField(
@@ -348,7 +308,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                           const SizedBox(height: 14),
 
-                          // PASSWORD
                           const _FieldLabel("Password"),
                           const SizedBox(height: 8),
                           _buildPasswordField(
@@ -366,7 +325,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                           const SizedBox(height: 14),
 
-                          // CONFIRM PASSWORD
                           const _FieldLabel("Confirm Password"),
                           const SizedBox(height: 8),
                           _buildPasswordField(
@@ -385,7 +343,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                           const SizedBox(height: 14),
 
-                          // TRAINING DROPDOWN
                           const _FieldLabel("Select Training"),
                           const SizedBox(height: 8),
                           isLoadingList
@@ -410,7 +367,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                           const SizedBox(height: 14),
 
-                          // BATCH DROPDOWN
                           const _FieldLabel("Select Batch"),
                           const SizedBox(height: 8),
                           isLoadingList
@@ -435,7 +391,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                           const SizedBox(height: 16),
 
-                          // GENDER
                           const _FieldLabel("Gender"),
                           const SizedBox(height: 8),
                           Row(
@@ -464,7 +419,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                     const SizedBox(height: 22),
 
-                    // TOMBOL REGISTER
                     SizedBox(
                       width: double.infinity,
                       height: 56,
@@ -510,7 +464,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  // ----------------- INPUT HELPERS -----------------
   Widget _buildTextField({
     required TextEditingController controller,
     required String hint,
@@ -604,7 +557,7 @@ class _RegisterPageState extends State<RegisterPage> {
     String? Function(T?)? validator,
   }) {
     return DropdownButtonFormField<T>(
-      initialValue: value, // <<-- ini penting, untuk menampilkan item terpilih
+      initialValue: value,
       isExpanded: true,
       onChanged: onChanged,
       validator: validator,
@@ -643,7 +596,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 }
 
-// Label kecil di atas field
 class _FieldLabel extends StatelessWidget {
   final String text;
   const _FieldLabel(this.text);

@@ -349,7 +349,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                             ),
                                           )
                                         : const Icon(
-                                            Icons.edit,
+                                            Icons.camera_alt_outlined,
                                             color: Colors.white,
                                             size: 18,
                                           ),

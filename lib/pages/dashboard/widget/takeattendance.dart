@@ -45,10 +45,10 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
       if (jamMasuk != null) {
         if (now.isBefore(jamMasuk!)) {
           final diff = jamMasuk!.difference(now);
-          _statusText = "Masuk dalam ${diff.inMinutes} menit";
+          _statusText = "Check in within ${diff.inMinutes} minutes";
 
           if (diff.inMinutes <= 5 && !_alreadyTriggered) {
-            _triggerReminder("Waktu masuk tinggal ${diff.inMinutes} menit!");
+            _triggerReminder("${diff.inMinutes} minutes left to check in!");
             _alreadyTriggered = true;
           }
         } else {
@@ -56,10 +56,10 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
           _alreadyTriggered = false;
 
           final diff = jamMasuk!.difference(now);
-          _statusText = "Masuk dalam ${diff.inMinutes} menit";
+          _statusText = "Check in within ${diff.inMinutes} minutes";
         }
       } else {
-        _statusText = "Belum ada jam masuk yang ditentukan";
+        _statusText = "No specific check-in time set yet";
       }
     });
   }
@@ -83,7 +83,7 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
             onPressed: () {
               messenger.hideCurrentMaterialBanner();
             },
-            child: const Text("Tutup"),
+            child: const Text("Close"),
           ),
         ],
       ),
@@ -125,7 +125,7 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
   Widget build(BuildContext context) {
     final jamMasukText = jamMasuk != null
         ? "${jamMasuk!.hour.toString().padLeft(2, '0')}:${jamMasuk!.minute.toString().padLeft(2, '0')} (${jamMasuk!.day}/${jamMasuk!.month}/${jamMasuk!.year})"
-        : "Belum dipilih";
+        : "Not selected yet";
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -155,7 +155,7 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
                     Icon(Icons.alarm, size: 22, color: AppColor.textDark),
                     SizedBox(width: 8),
                     Text(
-                      "Reminder",
+                      "Digital Clock Reminder",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -184,7 +184,7 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "Jam masuk: $jamMasukText",
+                  "Check-in Time: $jamMasukText",
                   style: const TextStyle(color: Colors.black54),
                 ),
                 const SizedBox(height: 8),
@@ -197,7 +197,7 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text("Atur Jam Masuk"),
+                  child: const Text("Set Check-in Time"),
                 ),
               ],
             ),

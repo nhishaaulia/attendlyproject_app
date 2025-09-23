@@ -29,60 +29,6 @@ class _LoginPageState extends State<LoginPage> {
 
   LoginUserModel? user;
   String? errorMessage;
-  // void loginUser() async {
-  //   setState(() {
-  //     isSubmitting = true;
-  //     isLoading = true;
-  //     errorMessage = null;
-  //   });
-  //   final email = emailC.text.trim();
-  //   final password = passC.text.trim();
-  //   // final name = nameController.text.trim();
-  //   if (email.isEmpty || password.isEmpty) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text("Email, Password, dan Nama tidak boleh kosong"),
-  //       ),
-  //     );
-  //     isLoading = false;
-
-  //     return;
-  //   }
-  //   try {
-  //     final result = await AuthService.loginUser(
-  //       email: email,
-  //       password: password,
-  //       // name: name,
-  //     );
-  //     setState(() {
-  //       user = result;
-  //     });
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).
-  //     showSnackBar(const SnackBar(content: Text("Login Succesfully")));
-  //     PreferenceHandler.saveToken(user?.data.token.toString() ?? "");
-  //     final savedUserId = await PreferenceHandler.getUserId();
-  //     // print("Saved User Id: $savedUserId");
-  //     // Navigator.pushReplacementNamed(Dashboard1.id);
-  //     context.pushReplacement(OverviewPage());
-
-  //     print(user?.toJson());
-  //   } catch (e) {
-  //     print(e);
-  //     setState(() {
-  //       errorMessage = e.toString();
-  //     });
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(SnackBar(content: Text(errorMessage.toString())));
-  //   } finally {
-  //     setState(() {});
-  //     isLoading = false;
-  //     isSubmitting = false;
-  //   }
-  //   // context.pushReplacementNamed(Dashboard1.id);
-  // }
 
   void loginUser() async {
     setState(() {
@@ -96,9 +42,7 @@ class _LoginPageState extends State<LoginPage> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Email, Password, dan Nama tidak boleh kosong"),
-        ),
+        const SnackBar(content: Text("Email, Password cannot be empty")),
       );
       isLoading = false;
       return;
@@ -117,7 +61,7 @@ class _LoginPageState extends State<LoginPage> {
       // SnackBar tetap
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text("Login Succesfully")));
+      ).showSnackBar(const SnackBar(content: Text("Welcome!")));
 
       // Simpan token
       PreferenceHandler.saveToken(user?.data.token.toString() ?? "");
@@ -138,14 +82,13 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Lottie.asset(
-                  'assets/lottie/sukses_animation.json', // ganti dengan file lottie kamu
-                  width: 150,
+                  'assets/lottie/sukses_animation.json',
                   height: 150,
                   repeat: false,
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  "Login Berhasil!",
+                  "Registration complete! Please log in.",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -154,8 +97,8 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
 
-      // Tutup dialog otomatis setelah 2 detik, lalu push ke OverviewPage
-      Future.delayed(const Duration(seconds: 2), () {
+      // Tutup dialog otomatis setelah 4 detik, lalu push ke OverviewPage
+      Future.delayed(const Duration(seconds: 3), () {
         Navigator.of(context).pop(); // tutup dialog
         context.pushReplacement(OverviewPage());
       });
@@ -168,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage.toString())));
+      ).showSnackBar(SnackBar(content: Text("Incorrect Password!")));
     } finally {
       setState(() {});
       isLoading = false;

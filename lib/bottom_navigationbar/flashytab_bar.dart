@@ -92,7 +92,7 @@ class FlashyTabBarItem {
     required this.icon,
     required this.title,
     this.activeColor = AppColor.pinkMid,
-    this.inactiveColor = AppColor.pinkLight,
+    this.inactiveColor = const Color.fromARGB(255, 255, 170, 199),
   });
 
   Color activeColor;

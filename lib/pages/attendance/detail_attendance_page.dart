@@ -166,7 +166,7 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
               const SizedBox(width: 10),
               Expanded(
                 child: _statTile(
-                  title: 'Leave',
+                  title: 'permission',
                   value: (_stat?.totalIzin ?? 0).toString(),
                   color: Colors.white,
                   bg: const Color(0xFFFCCFCF), // soft pink
@@ -257,6 +257,171 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
     final showReason =
         item.status.toLowerCase() == 'izin' &&
         (item.alasanIzin?.isNotEmpty ?? false);
+
+    Widget _historyCard(DataHistory item) {
+      final dayName = DateFormat('EEEE', 'en_US').format(item.attendanceDate);
+      final dateText =
+          '${item.attendanceDate.day}/${item.attendanceDate.month}/${item.attendanceDate.year}';
+      final inTime = _fmtTime(item.checkInTime);
+      final outTime = _fmtTime(item.checkOutTime);
+
+      final showReason =
+          item.status.toLowerCase() == 'izin' &&
+          (item.alasanIzin?.isNotEmpty ?? false);
+
+      return GestureDetector(
+        onLongPress: () async {
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text('Delete Attendance'),
+              content: Text(
+                'Are you sure you want to delete this attendance record?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text('Delete'),
+                ),
+              ],
+            ),
+          );
+
+          if (confirm == true) {
+            try {
+              String? token = await PreferenceHandler.getToken();
+              await AttendanceApiService.deleteAbsen(token ?? '', item.id);
+
+              setState(() {
+                _history.remove(item); // Hapus item dari list
+              });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Attendance deleted successfully.'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+
+              // Optionally refresh stats or list
+              await _loadAll();
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to delete attendance: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        },
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.all(16),
+          decoration: _box(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                dayName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColor.textDark,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Text(
+                    dateText,
+                    style: const TextStyle(
+                      color: AppColor.textDark,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  _statusChip(item.status),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _timeBlock(
+                      title: 'Check In',
+                      time: inTime,
+                      accent: AppColor.pinkMid,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _timeBlock(
+                      title: 'Check Out',
+                      time: outTime,
+                      accent: Colors.redAccent,
+                    ),
+                  ),
+                ],
+              ),
+              if ((item.checkInAddress ?? '').isNotEmpty ||
+                  (item.checkOutAddress ?? '').isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.location_on_rounded,
+                      color: AppColor.grey,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        (item.checkOutAddress ?? item.checkInAddress ?? '')
+                            .toString(),
+                        style: const TextStyle(
+                          color: AppColor.textDark,
+                          fontSize: 12,
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              // ======== Reason ========
+              if (showReason) ...[
+                const SizedBox(height: 12),
+                const Text(
+                  'Reason',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColor.textDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  item.alasanIzin ?? '',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColor.textDark,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -373,7 +538,7 @@ class _DetailAttendancePageState extends State<DetailAttendancePage> {
       case 'izin':
         bg = const Color(0xFFFCCFCF);
         fg = const Color(0xFFB94B4B);
-        label = 'LEAVE';
+        label = 'PERMISSION';
         break;
       default:
         bg = const Color(0xFFF1F2F6);
