@@ -44,20 +44,6 @@ class _DashboardpageState extends State<DashboardPage> {
 
             const SizedBox(height: 12),
 
-            // ReminderCheckIn(),
-
-            // // const DigitalClockCountdown(),
-            // const SizedBox(height: 20),
-            // Tombol submit absen → buka halaman map
-            // SubmitAbsenWidget(
-            //   onMapTap: () async {
-            //     // buka halaman map
-            //     await Navigator.pushNamed(context, '/gmapspage');
-
-            // // setelah balik dari map, reload data checkin/checkout
-            // checkKey.currentState?.reload();
-            //   },
-            // ),
             TakeAttendancePage(
               onMapTap: () async {
                 await Navigator.pushNamed(context, '/gmapspage');

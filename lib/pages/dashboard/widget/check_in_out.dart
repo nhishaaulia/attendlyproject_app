@@ -100,7 +100,7 @@ class CheckInOutContainerState extends State<CheckInOutContainer> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Gagal memuat absen hari ini: $e'),
+          content: Text('Failed to load today attendance: $e'),
           backgroundColor: Colors.red,
         ),
       );

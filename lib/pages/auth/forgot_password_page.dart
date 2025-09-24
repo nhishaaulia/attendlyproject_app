@@ -47,11 +47,11 @@ class _ForgotResetPasswordPageState extends State<ForgotResetPasswordPage> {
       );
       setState(() {
         _otpSent = true;
-        _message = res.message ?? "OTP berhasil dikirim ke email";
+        _message = res.message ?? "OTP has been sent to your email";
       });
     } catch (e) {
       setState(() {
-        _message = "Terjadi kesalahan: $e";
+        _message = "Something went wrong: $e";
       });
     } finally {
       setState(() => _loading = false);
@@ -72,11 +72,11 @@ class _ForgotResetPasswordPageState extends State<ForgotResetPasswordPage> {
         newPassword: _newPassC.text.trim(),
       );
       setState(() {
-        _message = res.message ?? "Password berhasil direset";
+        _message = res.message ?? "Your password has been reset";
       });
     } catch (e) {
       setState(() {
-        _message = "Gagal reset password: $e";
+        _message = "Failed reset password: $e";
       });
     } finally {
       setState(() => _loading = false);
