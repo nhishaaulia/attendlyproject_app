@@ -1,4 +1,4 @@
-package com.example.attendlyproject_app
+package com.ppkd.attendly
 
 import io.flutter.embedding.android.FlutterActivity
 
